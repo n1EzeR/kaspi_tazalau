@@ -4,45 +4,35 @@ import logging
 import pandas as pd
 from time import perf_counter
 from datetime import date as dt
-
-from pymystem3 import Mystem
-from kaznlplib.lid.lidnb import LidNB
-from kaznlplib.tokenization.tokrex import TokenizeRex
+from .utils import detect_language
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger()
 
-mystem = Mystem()
 
-
-def collect_category_reviews(REVIEWS_DIR, category):
+def collect_category_reviews(reviews_dir, category):
     start_time = perf_counter()
-    products = os.listdir(REVIEWS_DIR)
+    products = os.listdir(reviews_dir)
     texts, pluses, minuses, ratings, languages = [], [], [], [], []
 
     LOGGER.info(f'Number of products in {category}: {len(products)}')
 
-    tokrex = TokenizeRex()
-    cmdl = os.path.join('kaznlplib', 'lid', 'char.mdl')
-    wmdl = os.path.join('kaznlplib', 'lid', 'word.mdl')
-    landetector = LidNB(word_mdl=wmdl, char_mdl=cmdl)
-
     total_reviews = 0
     for product in products:
 
-        reviews_path = f"{REVIEWS_DIR}/{product}"
+        reviews_path = f"{reviews_dir}/{product}"
         with open(reviews_path) as f:
             reviews = json.load(f)['data']
             total_reviews += len(reviews)
             for review in reviews:
                 text, plus, minus = review['comment']['text'], review['comment']['plus'], review['comment']['minus']
-
-                language = landetector.predict(tokrex.tokenize(text or plus or minus, lower=True)[0])
-                languages.append(language)
-
                 texts.append(text)
                 pluses.append(plus)
                 minuses.append(minus)
+
+                language = detect_language(text or plus or minus)
+                languages.append(language)
+
                 ratings.append(review['rating'])
 
     LOGGER.info(f'Number of reviews in {category}: {total_reviews}')
@@ -61,21 +51,21 @@ def collect_category_reviews(REVIEWS_DIR, category):
     return df
 
 
-def walk_categories(base_dir):
+def collect_categories(base_dir):
     date = str(dt.today())
-    categories = os.listdir(base_dir, )
+    categories = [category for category in os.listdir(base_dir) if not category.startswith('.')]
     for category in categories:
-        if category.startswith('.'):
-            continue
-
         LOGGER.info(f'Started proccessing {category}')
-        start_time = perf_counter()
+
+        start = perf_counter()
         df = collect_category_reviews(f"{base_dir}/{category}", category)
+
+        LOGGER.info(f'Finished processing {category} in {perf_counter() - start}')
+
         df.to_csv(f'data/{category}_reviews_{date}.csv')
-        LOGGER.info(f'Finished processing {category} in {perf_counter() - start_time}')
 
 
-def collect_all_dataframes():
+def compile_dataframes():
     files = os.listdir('data/2019-12-14')
     file = files.pop(0)
     reviews = pd.read_csv(f'data/2019-12-14/{file}',
@@ -88,10 +78,14 @@ def collect_all_dataframes():
 
 
 if __name__ == '__main__':
-    REVIEWS_DIR = f'../parser/data/reviews/{dt.today()}/'
-    if not os.path.exists(REVIEWS_DIR):
-        REVIEWS_DIR = '../parser/data/reviews/2019-12-13/'
+    reviews_dir = f'../parser/data/reviews/{dt.today()}/'
+    if not os.path.exists(reviews_dir):
+        reviews_dir = '../parser/data/reviews/2019-12-13/'
 
-    now = perf_counter()
-    walk_categories(REVIEWS_DIR)
-    LOGGER.info(f"Overall time: {perf_counter() - now}")
+    start = perf_counter()
+    collect_categories(reviews_dir)
+    LOGGER.info(f"Overall collection time: {perf_counter() - start}")
+
+    start = perf_counter()
+    compile_dataframes()
+    LOGGER.info(f"All categories compilation time: {perf_counter() - start}")
