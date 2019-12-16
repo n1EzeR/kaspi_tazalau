@@ -56,7 +56,6 @@ async def collect_category_reviews(reviews_dir, category):
 
 
 async def collect_categories(base_dir):
-
     categories = [category for category in os.listdir(base_dir) if not category.startswith('.')]
     await asyncio.gather(
         *[collect_category_reviews(f"{base_dir}/{category}", category) for category in categories]
@@ -69,7 +68,8 @@ def compile_dataframes():
     reviews = pd.read_csv(f'../data/2019-12-16/{file}',
                           usecols=['text', 'plus', 'minus', 'language', 'rating', 'category'])
     for file in files:
-        df = pd.read_csv(f'../data/2019-12-16/{file}', usecols=['text', 'plus', 'minus', 'language', 'rating', 'category'])
+        df = pd.read_csv(f'../data/2019-12-16/{file}',
+                         usecols=['text', 'plus', 'minus', 'language', 'rating', 'category'])
         reviews = reviews.append(df)
 
     reviews.to_csv('../data/2019-12-16/all.csv')
