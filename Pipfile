@@ -6,17 +6,9 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-pandas = "*"
 pymystem3 = "*"
-nltk = "*"
-jupyter = "*"
-plotly = "*"
-bokeh = "*"
-seaborn = "*"
-matplotlib = "*"
-cufflinks = "*"
-sklearn = "*"
-chart-studio = "*"
+pandas = "*"
+asyncio = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
