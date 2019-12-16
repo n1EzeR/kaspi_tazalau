@@ -75,7 +75,7 @@ def walk_categories(base_dir):
         LOGGER.info(f'Finished processing {category} in {perf_counter() - start_time}')
 
 
-def collect_dfs():
+def collect_all_dataframes():
     files = os.listdir('data/2019-12-14')
     file = files.pop(0)
     reviews = pd.read_csv(f'data/2019-12-14/{file}',
