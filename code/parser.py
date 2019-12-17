@@ -15,17 +15,17 @@ LOGGER = logging.getLogger()
 
 async def collect_category_reviews(reviews_dir, category):
     LOGGER.info(f'Started proccessing {category}')
-    start_time = perf_counter()
-    products = os.listdir(reviews_dir)
-    texts, pluses, minuses, ratings, languages = [], [], [], [], []
 
     total_reviews = 0
+    start_time = perf_counter()
+    texts, pluses, minuses, ratings, languages = [], [], [], [], []
+
+    products = os.listdir(reviews_dir)
     for product in products:
 
         reviews_path = f"{reviews_dir}/{product}"
         with open(reviews_path) as f:
             reviews = json.load(f)['data']
-            total_reviews += len(reviews)
             for review in reviews:
                 text, plus, minus = review['comment']['text'], review['comment']['plus'], review['comment']['minus']
                 texts.append(text)
@@ -36,6 +36,8 @@ async def collect_category_reviews(reviews_dir, category):
                 languages.append(language)
 
                 ratings.append(review['rating'])
+
+            total_reviews += len(reviews)
 
     data = {
         "text": texts,
@@ -62,15 +64,14 @@ async def collect_categories(base_dir):
     )
 
 
-def compile_dataframes():
+def compile_dataframe():
+    reviews = pd.DataFrame()
+
     files = os.listdir('../data/2019-12-16')
-    file = files.pop(0)
-    reviews = pd.read_csv(f'../data/2019-12-16/{file}',
-                          usecols=['text', 'plus', 'minus', 'language', 'rating', 'category'])
     for file in files:
         df = pd.read_csv(f'../data/2019-12-16/{file}',
                          usecols=['text', 'plus', 'minus', 'language', 'rating', 'category'])
-        reviews = reviews.append(df)
+        reviews = reviews.append(df, ignore_index=True)
 
     reviews.to_csv('../data/2019-12-16/all.csv')
 
@@ -87,7 +88,7 @@ async def compile_data():
 
     LOGGER.info(f"Started categories compilation")
     start = perf_counter()
-    compile_dataframes()
+    compile_dataframe()
     LOGGER.info(f"All categories compilation time: {perf_counter() - start}")
 
 
