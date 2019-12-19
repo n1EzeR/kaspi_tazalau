@@ -79,7 +79,7 @@ def compile_dataframe():
 async def compile_data():
     reviews_dir = f'../../parser/data/reviews/{dt.today()}/'
     if not os.path.exists(reviews_dir):
-        reviews_dir = '../../parser/data/reviews/2019-12-13/'
+        reviews_dir = '../../parser/data/reviews/2019-12-13/' # TODO logger, make up backup date as const
 
     LOGGER.info(f"Started categories collection")
     start = perf_counter()
