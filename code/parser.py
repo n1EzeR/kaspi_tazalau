@@ -77,13 +77,12 @@ def compile_dataframe():
 
 
 async def compile_data():
-    reviews_dir = f'../../parser/data/reviews/{dt.today()}/'
-    if not os.path.exists(reviews_dir):
-        reviews_dir = '../../parser/data/reviews/2019-12-13/' # TODO logger, make up backup date as const
+    reviews_dir = os.listdir('../../parser/data/reviews')
+    latest_parse_date = sorted(reviews_dir)[-1]
 
     LOGGER.info(f"Started categories collection")
     start = perf_counter()
-    await collect_categories(reviews_dir)
+    await collect_categories(latest_parse_date)
     LOGGER.info(f"Overall collection time: {perf_counter() - start}")
 
     LOGGER.info(f"Started categories compilation")
