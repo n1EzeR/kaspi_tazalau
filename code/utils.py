@@ -1,4 +1,3 @@
-import asyncio
 import os
 
 from .kaznlplib.lid.lidnb import LidNB

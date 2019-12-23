@@ -1,6 +1,5 @@
 import re
 
-import pandas as pd
 from pymystem3 import Mystem
 
 from code.constants import STOPWORDS, PUNCTUATION
