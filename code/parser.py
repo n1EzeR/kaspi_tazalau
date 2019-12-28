@@ -7,7 +7,7 @@ from time import perf_counter
 
 import pandas as pd
 
-from code.utils import detect_language
+from code.utils import detect_language, get_latest_date_in_dir
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger()
@@ -68,10 +68,7 @@ async def collect_categories(base_dir):
 
 def compile_dataframe():
     data_dir = '../data'
-
-    collection_dates = sorted(os.listdir(data_dir))
-    collection_dates = [date for date in collection_dates if not date.startswith('.')]
-    latest_collection = collection_dates[-1]
+    latest_collection = get_latest_date_in_dir(data_dir)
 
     categories_dir = f"{data_dir}/{latest_collection}"
     categories = os.listdir(categories_dir)
@@ -86,8 +83,8 @@ def compile_dataframe():
 
 
 async def compile_data():
-    reviews_dir = os.listdir('../../parser/data/reviews')
-    latest_parse_date = sorted(reviews_dir)[-1]
+    reviews_dir = '../../parser/data/reviews'
+    latest_parse_date = get_latest_date_in_dir(reviews_dir)
 
     LOGGER.info(f"Started categories collection")
     start = perf_counter()
