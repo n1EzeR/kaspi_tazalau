@@ -25,7 +25,7 @@ def clean_data(dir, file):
     df = pd.read_csv(data)
 
     df['combined_text'] = df.text.astype(str) + ' ' + df.plus.astype(str) + ' ' + df.minus.astype(str)
-    df.drop(['text', 'plus', 'minus'], inplace=True)
+    df.drop(['text', 'plus', 'minus'], inplace=True, axis=1)
 
     df['combined_text'] = df['combined_text'].apply(clean_text)
     df['combined_text'] = df['combined_text'].apply(lemmatize_text)
@@ -39,7 +39,7 @@ def clean_text(text):
     # TODO add average cleaning time logger
 
     text = text.lower()
-    text = re.sub(r'(<\s*\w+\s*>)*(<\s*/\w+\s*>)*', '', text)
+    text = re.sub(r'(<\s*\w+\s*>)*(<\s*/\w+\s*>)*(nan)*', '', text)
     text = [word for word in text.split(' ') if word not in STOPWORDS and word not in PUNCTUATION]
 
     return " ".join(text)
@@ -56,9 +56,11 @@ def lemmatize_text(text):
 def process_data():
     data_dir = '../data'
     latest_parse_date = get_latest_date_in_dir(data_dir)
-    raw_data_dir = f"{data_dir}/{latest_parse_date}"
+    latest_collection_dir = f"{data_dir}/{latest_parse_date}"
 
-    if not os.path.exists(raw_data_dir):
-        raise DataNotCollectedException(f'Data is not collected for {raw_data_dir}')
+    if not os.path.exists(latest_collection_dir):
+        raise DataNotCollectedException(f'Data is not collected for {latest_collection_dir}')
+
+    clean_data(latest_collection_dir, 'all.csv')
 
     clean_data(raw_data_dir, 'all.csv')
