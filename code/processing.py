@@ -23,7 +23,9 @@ def clean_data(dir, file):
     data = f"{dir}/{file}"
 
     df = pd.read_csv(data)
-    df['combined_text'] = df.text + ' ' + df.plus + ' ' + df.minus
+
+    df['combined_text'] = df.text.astype(str) + ' ' + df.plus.astype(str) + ' ' + df.minus.astype(str)
+    df.drop(['text', 'plus', 'minus'], inplace=True)
 
     df['combined_text'] = df['combined_text'].apply(clean_text)
     df['combined_text'] = df['combined_text'].apply(lemmatize_text)
@@ -52,7 +54,7 @@ def lemmatize_text(text):
 
 
 def process_data():
-    data_dir = '../data/'
+    data_dir = '../data'
     latest_parse_date = get_latest_date_in_dir(data_dir)
     raw_data_dir = f"{data_dir}/{latest_parse_date}"
 
