@@ -1,11 +1,13 @@
+import asyncio
+
 from code import processing
 from code import parser
 
 
-def process_data():
-    parser.compile_data()
+async def process_data():
+    await parser.compile_data()
     processing.process_data()
 
 
 if __name__ == '__main__':
-    process_data()
+    asyncio.run(process_data())

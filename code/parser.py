@@ -14,7 +14,7 @@ LOGGER = logging.getLogger()
 
 
 async def collect_category_reviews(reviews_dir, category):
-    LOGGER.info(f'Started proccessing {category}')
+    LOGGER.info(f'Started collection of {category}')
 
     total_reviews = 0
     start_time = perf_counter()
@@ -47,6 +47,7 @@ async def collect_category_reviews(reviews_dir, category):
         "rating": ratings,
     }
     date = str(dt.today())
+    os.makedirs(f'../data/{date}/', exist_ok=True)
 
     df = pd.DataFrame(data=data)
     df['category'] = category
@@ -70,6 +71,8 @@ def compile_dataframe():
     data_dir = '../data'
     latest_collection = get_latest_date_in_dir(data_dir)
 
+    LOGGER.info(f"Dataframe compilation date: {latest_collection}")
+
     categories_dir = f"{data_dir}/{latest_collection}"
     categories = os.listdir(categories_dir)
 
@@ -85,10 +88,11 @@ def compile_dataframe():
 async def compile_data():
     reviews_dir = '../../parser/data/reviews'
     latest_parse_date = get_latest_date_in_dir(reviews_dir)
+    reviews_dir = f'{reviews_dir}/{latest_parse_date}'
 
-    LOGGER.info(f"Started categories collection")
+    LOGGER.info(f"Started categories collection for {latest_parse_date}")
     start = perf_counter()
-    await collect_categories(latest_parse_date)
+    await collect_categories(reviews_dir)
     LOGGER.info(f"Overall collection time: {perf_counter() - start}")
 
     LOGGER.info(f"Started categories compilation")
