@@ -1,7 +1,12 @@
 # About
 The project cleans data collected from https://github.com/n1EzeR/kaspi_parser
 
-## Processing steps
+## Parsed data can be downloaded here:
+https://github.com/n1EzeR/kaspi_reviews_dataset
+- Partially cleaned (both row and cleaned versioans are available though)
+- ~120k rows
+
+# Processing steps
 ### Part I
 1. Walks through all categories, parses each product JSON file, detects language of product's review (either RU or KZ) using https://github.com/nlacslab/kaznlp
 2. Combines all data from products into one CSV file
@@ -43,4 +48,3 @@ python app.py
 
 ## Further development
 1. Make data paths more universal
-2. ...
