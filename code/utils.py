@@ -23,6 +23,6 @@ def get_latest_date_in_dir(dir):
     collection_dates = [date for date in collection_dates if not date.startswith('.')]
 
     if not collection_dates:
-        raise EmptyDirectoryException(f"No valid files in {dir}")
+        raise EmptyDirectoryException(f"No valid files or directories are found in {dir}")
 
     return collection_dates[-1]
