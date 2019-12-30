@@ -13,7 +13,7 @@ from code.utils import get_latest_date_in_dir
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger()
 
-mystem = Mystem()
+stem = Mystem()
 
 
 def clean_data(dir, file):
@@ -48,7 +48,7 @@ def clean_text(text):
 def lemmatize_text(text):
     # TODO add average lemmatizing time logger
 
-    text = mystem.lemmatize(text)
+    text = stem.lemmatize(text)
     text = [word for word in text if word != ' ']
     return " ".join(text)
 
@@ -62,5 +62,3 @@ def process_data():
         raise DataNotCollectedException(f'Data is not collected for {latest_collection_dir}')
 
     clean_data(latest_collection_dir, 'all.csv')
-
-    clean_data(raw_data_dir, 'all.csv')
