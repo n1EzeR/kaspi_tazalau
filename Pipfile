@@ -9,6 +9,8 @@ verify_ssl = true
 pymystem3 = "*"
 pandas = "*"
 asyncio = "*"
+aiofiles = "*"
+ujson = "*"
 
 [requires]
 python_version = "3.8"
