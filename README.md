@@ -9,11 +9,11 @@ https://github.com/n1EzeR/russian_reviews_dataset
 # Processing steps
 ### Part I
 1. Walks through all categories, parses each product JSON file, detects language of product's review (either RU or KZ) using https://github.com/nlacslab/kaznlp
-2. Combines all data from products into one CSV file
-3. Combines all categorized CSV files into one large file
+2. Combines all data from products into one CSV file per category
+3. Combines all categorized CSV files into one large `all.csv` file
 
 ### Part II
-1. Removes all stopwords from reviews
+1. Removes all stopwords from `all.csv` reviews
 2. Lemmatizes reviews using https://github.com/nlpub/pymystem3
 3. Outputs new `cleaned_data.csv`
 
