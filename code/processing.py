@@ -50,15 +50,16 @@ def lemmatize_text(text):
 
     text = stem.lemmatize(text)
     text = [word for word in text if word != ' ']
+
     return " ".join(text)
 
 
 def process_data():
     data_dir = '../data'
     latest_parse_date = get_latest_date_in_dir(data_dir)
-    latest_collection_dir = f"{data_dir}/{latest_parse_date}"
+    latest_data_dir = f"{data_dir}/{latest_parse_date}"
 
-    if not os.path.exists(latest_collection_dir):
-        raise DataNotCollectedException(f'Data is not collected for {latest_collection_dir}')
+    if not os.path.exists(latest_data_dir):
+        raise DataNotCollectedException(f'Data is not collected for {latest_data_dir}')
 
-    clean_data(latest_collection_dir, 'all.csv')
+    clean_data(latest_data_dir, 'all.csv')

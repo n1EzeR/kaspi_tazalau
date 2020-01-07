@@ -33,29 +33,9 @@ async def compile_data():
 async def collect_categories(base_dir):
     categories = os.listdir(base_dir)
     categories = [category for category in categories if not category.startswith('.')]
+
     categories_reviews = [collect_category_reviews(f"{base_dir}/{category}", category) for category in categories]
-
-    await asyncio.gather(
-        *categories_reviews
-    )
-
-
-def compile_dataframe():
-    data_dir = '../data'
-    latest_collection = get_latest_date_in_dir(data_dir)
-
-    LOGGER.info(f"Dataframe compilation date: {latest_collection}")
-
-    categories_dir = f"{data_dir}/{latest_collection}"
-    categories = os.listdir(categories_dir)
-
-    reviews = pd.DataFrame()
-    for category in categories:
-        df = pd.read_csv(f'{categories_dir}/{category}',
-                         usecols=['text', 'plus', 'minus', 'language', 'rating', 'category'])
-        reviews = reviews.append(df, ignore_index=True)
-
-    reviews.to_csv(f'{categories_dir}/all.csv')
+    await asyncio.gather(*categories_reviews)
 
 
 async def collect_category_reviews(reviews_dir, category):
@@ -93,13 +73,12 @@ async def collect_product_reviews(product, reviews_dir, texts, pluses, minuses, 
     async with aiofiles.open(reviews_path) as f:
         reviews = json.loads(await f.read())['data']
 
-        reviews_start = perf_counter()
         LOGGER.info(f"Started collecting product reviews")
+        reviews_start = perf_counter()
 
         reviews_tasks = []
         for review in reviews:
-            reviews_tasks.append(
-                append_review_data(review, texts, pluses, minuses, languages, ratings))
+            reviews_tasks.append(append_review_data(review, texts, pluses, minuses, languages, ratings))
 
         LOGGER.info(f"Collected reviews in {perf_counter() - reviews_start}")
 
@@ -121,6 +100,24 @@ async def append_review_data(review, texts, pluses, minuses, languages, ratings)
     languages.append(language)
 
     ratings.append(review['rating'])
+
+
+def compile_dataframe():
+    data_dir = '../data'
+    latest_categories_collection = get_latest_date_in_dir(data_dir)
+
+    LOGGER.info(f'Dataframe compilation date: {latest_categories_collection}')
+
+    categories_dir = f'{data_dir}/{latest_categories_collection}'
+    categories = os.listdir(categories_dir)
+
+    reviews = pd.DataFrame()
+    for category in categories:
+        df = pd.read_csv(f'{categories_dir}/{category}',
+                         usecols=['text', 'plus', 'minus', 'language', 'rating', 'category'])
+        reviews = reviews.append(df, ignore_index=True)
+
+    reviews.to_csv(f'{categories_dir}/all.csv')
 
 
 if __name__ == '__main__':
