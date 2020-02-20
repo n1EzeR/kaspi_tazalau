@@ -1,8 +1,8 @@
 # About
-The project cleans data collected from https://github.com/n1EzeR/reviews_parser
+The project cleans data collected from https://github.com/zhanymkanov/reviews_parser
 
 ## Parsed data can be downloaded here:
-https://github.com/n1EzeR/russian_reviews_dataset
+https://github.com/zhanymkanov/russian_reviews_dataset
 - Partially cleaned (both row and cleaned versioans are available though)
 - ~120k rows
 
@@ -23,13 +23,13 @@ https://github.com/n1EzeR/russian_reviews_dataset
 1. Python 3
 2. pip
 3. Pipenv (`pip3 install -m pipenv`)
-4. Sucessfully parsed data from https://github.com/n1EzeR/reviews_parser
+4. Sucessfully parsed data from https://github.com/zhanymkanov/reviews_parser
 5. Make sure data is collected from parser and stored in proper directories locally
 
 ## Installation
 1. Clone the project
 ```
-git clone https://github.com/n1EzeR/reviews_tazalau
+git clone https://github.com/zhanymkanov/reviews_tazalau
 ```
 2. Go to project directory
 ```
