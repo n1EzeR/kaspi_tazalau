@@ -1,6 +1,8 @@
 data
+cleaned_data
 .idea
 .bash_history
+.local
 
 # Byte-compiled / optimized / DLL files
 code/__pycache__/
