@@ -47,9 +47,14 @@ async def collect_category_reviews(reviews_dir, category):
 
     texts, pluses, minuses, ratings, languages = [], [], [], [], []
 
+    tasks = []
     products = os.listdir(reviews_dir)
     for product in products:
-        total_reviews += await collect_product_reviews(product, reviews_dir, texts, pluses, minuses, languages, ratings)
+        tasks.append(collect_product_reviews(
+            product, reviews_dir, texts, pluses, minuses, languages, ratings
+        ))
+
+    await asyncio.gather(*tasks)
 
     data = {
         "text": texts,
