@@ -37,8 +37,6 @@ def clean_data(dir, file):
 
 
 def clean_text(text):
-    # TODO add average cleaning time logger
-
     text = text.lower()
     text = re.sub(r"(<\s*\w+\s*>)*(<\s*/\w+\s*>)*(nan)*", "", text)
     text = [
@@ -51,8 +49,6 @@ def clean_text(text):
 
 
 def lemmatize_text(text):
-    # TODO add average lemmatizing time logger
-
     text = stem.lemmatize(text)
     text = [word for word in text if word != " "]
 
