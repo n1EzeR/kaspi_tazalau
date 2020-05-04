@@ -1,20 +1,21 @@
 #  -*- coding: UTF-8 -*-
 from __future__ import division
-import math
+
 import itertools
+import math
 
 
 # HMM with deleted interpolation
-class HMM_DI():
-
+class HMM_DI:
     def __init__(
-            self,
-            order=3,
-            smoothing=None,
-            count_delim='\t',
-            sequence_delim='*_*',
-            sequence_beg='<s>',
-            sequence_end='</s>'):
+        self,
+        order=3,
+        smoothing=None,
+        count_delim="\t",
+        sequence_delim="*_*",
+        sequence_beg="<s>",
+        sequence_end="</s>",
+    ):
         # N-gramm size
         self.order = order
         if self.order < 1 or self.order > 5:
@@ -38,8 +39,8 @@ class HMM_DI():
         self.observations = {}
 
     def load_model(self, model):
-        ''' load a model from a file '''
-        lines = open(model, 'r').readlines()
+        """ load a model from a file """
+        lines = open(model, "r").readlines()
         # get the model's order
         self.order = int(lines[0].strip())
         # get smoothing vector - space separated
@@ -55,7 +56,7 @@ class HMM_DI():
         self.sequence_end = lines[5].strip()[1:-1]
         # get number of transitions
         N = int(lines[6].strip())
-        for l in lines[7:7 + N]:
+        for l in lines[7 : 7 + N]:
             [transition, mle] = l.strip().split(self.count_delim)
             for state in transition.split():
                 if state not in [self.sequence_beg, self.sequence_end]:
@@ -63,27 +64,35 @@ class HMM_DI():
             self.transitions[tuple(transition.split())] = float(mle)
         # get number of state-observation pairs
         M = int(lines[7 + N].strip())
-        for i, line in enumerate(lines[8 + N: 8 + N + M]):
+        for i, line in enumerate(lines[8 + N : 8 + N + M]):
             [emission, mle] = line.strip().split(self.count_delim)
-            tup = tuple(emission.split(' '))
+            tup = tuple(emission.split(" "))
             if len(tup) < 2:
-                raise ValueError('Error loading model.\
+                raise ValueError(
+                    "Error loading model.\
                                  Line {}: too few state,\
-                                 observation parameters'.format(i + 7 + N))
+                                 observation parameters".format(
+                        i + 7 + N
+                    )
+                )
             elif len(tup) > 2:
-                if len(tup) == 3 and not ''.join(tup[-2:]):
-                    tup = [tup[0], ' ']
+                if len(tup) == 3 and not "".join(tup[-2:]):
+                    tup = [tup[0], " "]
                 else:
-                    raise ValueError('Error loading model.\
+                    raise ValueError(
+                        "Error loading model.\
                                      Line {}: consider removing spaces from\
-                                     states or observations'.format(i + 7 + N))
+                                     states or observations".format(
+                            i + 7 + N
+                        )
+                    )
             self.emissions[tup] = float(mle)
 
     def save_model(self, model):
-        ''' load a model to a file '''
-        fd = open(model, 'w')
+        """ load a model to a file """
+        fd = open(model, "w")
         # zero-th line contains a single integer - the order of the model
-        fd.write(f'{self.order}\n')
+        fd.write(f"{self.order}\n")
         # first line contains a single float - smoothing coefficient
         # (between 0 and 1)
         fd.write(f"{' '.join([str(lmb) for lmb in self.smoothing])}\n")
@@ -99,28 +108,24 @@ class HMM_DI():
         fd.write(f'"{self.sequence_end}"\n')
         # sixth line contains a single integer N -
         # number of state transition N-grams
-        fd.write(f'{len(self.transitions)}\n')
+        fd.write(f"{len(self.transitions)}\n")
         # next N lines contain state transition ngrams and
         # their frequences (MLE) delimitered by the count delimiter
         for transition, mle in sorted(
-                self.transitions.items(),
-                key=lambda x: x[1], reverse=True):
+            self.transitions.items(), key=lambda x: x[1], reverse=True
+        ):
             fd.write(f"{' '.join(transition)}{self.count_delim}{mle:1.20f}\n")
         # next line contains a single integer M -
         # number of state-observation pairs
-        fd.write(f'{len(self.emissions.values())}\n')
+        fd.write(f"{len(self.emissions.values())}\n")
         # next M lines contain state state-observation pairs and
         # their frequences (MLE) delimitered by the count delimiter
         for emission, mle in sorted(
-                self.emissions.items(),
-                key=lambda x: x[1], reverse=True):
+            self.emissions.items(), key=lambda x: x[1], reverse=True
+        ):
             fd.write(f"{' '.join(emission)}{self.count_delim}{mle:1.20f}\n")
 
-    def train(
-            self, trainfile,
-            order=3,
-            count_delim='\t',
-            sequence_delim='*_*'):
+    def train(self, trainfile, order=3, count_delim="\t", sequence_delim="*_*"):
         # N-gramm size
         self.order = int(order)
         if self.order < 1 or self.order > 5:
@@ -144,7 +149,7 @@ class HMM_DI():
         emission_counts = {}
         input_length = 0.0
         buff = (self.order - 1) * [self.sequence_beg]
-        for line in open(trainfile, 'r').readlines():
+        for line in open(trainfile, "r").readlines():
             if not line.strip():
                 continue
             input_length += 1
@@ -157,9 +162,8 @@ class HMM_DI():
                     if buff:
                         ngrm = buff + [self.sequence_end]
                         for j in range(len(ngrm)):
-                            pfx = tuple(ngrm[:len(ngrm) - j])
-                            transition_counts[pfx] = transition_counts.get(
-                                pfx, 0.0) + 1
+                            pfx = tuple(ngrm[: len(ngrm) - j])
+                            transition_counts[pfx] = transition_counts.get(pfx, 0.0) + 1
                     buff = buff[1:] + [self.sequence_end]
                 buff = (self.order - 1) * [self.sequence_beg]
                 continue
@@ -173,11 +177,12 @@ class HMM_DI():
             # count transistions
             ngrm = buff + [state]
             for i in range(len(ngrm)):
-                pfx = tuple(ngrm[:len(ngrm) - i])
+                pfx = tuple(ngrm[: len(ngrm) - i])
                 transition_counts[pfx] = transition_counts.get(pfx, 0.0) + 1
             # count emissions
-            emission_counts[state, observ] = emission_counts.get(
-                (state, observ), 0.0) + 1
+            emission_counts[state, observ] = (
+                emission_counts.get((state, observ), 0.0) + 1
+            )
             # update buffer
             if buff:
                 buff = buff[1:] + [state]
@@ -189,24 +194,19 @@ class HMM_DI():
                 continue
             deleted = []
             for i in range(len(transition)):
-                ngram = tuple(transition[:len(transition) - i])
-                pfx = tuple(transition[:len(transition) - i - 1])
+                ngram = tuple(transition[: len(transition) - i])
+                pfx = tuple(transition[: len(transition) - i - 1])
                 # calc mle
-                self.transitions[ngram] = transition_counts.get(
-                    ngram, 0.0)
-                self.transitions[ngram] /= transition_counts.get(
-                    pfx, input_length)
+                self.transitions[ngram] = transition_counts.get(ngram, 0.0)
+                self.transitions[ngram] /= transition_counts.get(pfx, input_length)
                 # calc deleted mle
                 if transition_counts.get(pfx, input_length) - 1 < 1:
                     deleted.insert(0, 0)
                 else:
-                    deleted.insert(0, transition_counts.get(
-                        ngram, 0.0) - 1)
-                    deleted[0] /= (transition_counts.get(
-                        pfx, input_length) - 1)
+                    deleted.insert(0, transition_counts.get(ngram, 0.0) - 1)
+                    deleted[0] /= transition_counts.get(pfx, input_length) - 1
             # adjust smoothing coefficients
-            lambdas[deleted.index(
-                max(deleted))] += transition_counts[transition]
+            lambdas[deleted.index(max(deleted))] += transition_counts[transition]
         # normalize and save smoothing coeffcients
         for i, lmb in enumerate(lambdas):
             self.smoothing[i] = lmb / sum(lambdas)
@@ -216,17 +216,16 @@ class HMM_DI():
         for emission, count in emission_counts.items():
             [state, observ] = emission
             # calc mle
-            self.emissions[emission] = count / transition_counts.get(
-                (state,), count)
+            self.emissions[emission] = count / transition_counts.get((state,), count)
             # calc deleted mle
             if input_length > 1:
-                deleted[0] = (transition_counts.get(
-                    (state,), count) - 1) / (input_length - 1)
+                deleted[0] = (transition_counts.get((state,), count) - 1) / (
+                    input_length - 1
+                )
             else:
                 deleted[0] = 0
             if transition_counts.get((state,), count) > 1:
-                deleted[1] = (count - 1) / (
-                        transition_counts.get((state,), count) - 1)
+                deleted[1] = (count - 1) / (transition_counts.get((state,), count) - 1)
             else:
                 deleted[1] = 0
             deleted[1] = count - 1
@@ -238,24 +237,21 @@ class HMM_DI():
             self.smoothing[self.order + i] = lmb / sum(lambdas)
 
     def generate(self, observations):
-        '''
+        """
         viterbi decoder
-        '''
+        """
 
         def smoothed_emission(state, observ):
             if state == self.sequence_end:
                 return 1.0
-            ret = self.smoothing[self.order] * self.emissions.get(
-                (state, observ), 0)
-            ret += self.smoothing[self.order + 1] * self.transitions.get(
-                state, 0)
+            ret = self.smoothing[self.order] * self.emissions.get((state, observ), 0)
+            ret += self.smoothing[self.order + 1] * self.transitions.get(state, 0)
             return ret
 
         def smoothed_transition(states):
             ret = []
             for i in range(self.order):
-                ret.append(self.smoothing[i] * self.transitions.get(
-                    states[:i + 1], 0))
+                ret.append(self.smoothing[i] * self.transitions.get(states[: i + 1], 0))
             return sum(ret)
 
         def backtrack(path):
@@ -270,7 +266,7 @@ class HMM_DI():
         # separate procedure for unigrams
         if self.order < 2:
             for o in observations:
-                maxlike = [float('-inf'), None]
+                maxlike = [float("-inf"), None]
                 for s in self.states:
                     like = smoothed_emission(s, o)
                     if like > maxlike[0]:
@@ -289,9 +285,10 @@ class HMM_DI():
         for observ in observations + [self.sequence_end]:
             path.append({})
             currporbs = {}
-            for state in (observ == self.sequence_end
-                          and [self.sequence_end] or self.states):
-                maxlogprob = float('-inf')
+            for state in (
+                observ == self.sequence_end and [self.sequence_end] or self.states
+            ):
+                maxlogprob = float("-inf")
                 for pfx in itertools.product(*tuple(state_pfx)):
                     tr_prob = smoothed_transition(pfx + (state,))
                     em_prob = smoothed_emission(state, observ)

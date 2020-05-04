@@ -1,24 +1,37 @@
 # -*- coding: UTF-8 -*-
 
 from __future__ import division
+
+import copy
+import itertools
+import os
+
 import kaznlp.morphology.utils as utils
 from kaznlp.morphology.analyzers import AnalyzerDD
 
-import os
-import itertools
-import copy
 
-
-class TaggerHMM():
-
+class TaggerHMM:
     def __init__(
-            self,
-            mode='IP', cw=3,
-            lyzer=None, transi=None, emissi=None,
-            lkp={}, pc={},
-            sen_dlm='*_*', seg_dlm=' ', mor_dlm='_', mor_jnr='-',
-            gen_dlm='\t', ng_dlm=' ', pc_dlm='~@~',
-            em='*', ph='#', de='utf-8', log=None):
+        self,
+        mode="IP",
+        cw=3,
+        lyzer=None,
+        transi=None,
+        emissi=None,
+        lkp={},
+        pc={},
+        sen_dlm="*_*",
+        seg_dlm=" ",
+        mor_dlm="_",
+        mor_jnr="-",
+        gen_dlm="\t",
+        ng_dlm=" ",
+        pc_dlm="~@~",
+        em="*",
+        ph="#",
+        de="utf-8",
+        log=None,
+    ):
 
         # general stuff
         self.mode = mode
@@ -58,22 +71,24 @@ class TaggerHMM():
         # create a transition LM instance
         self.new_transi(
             # pass transition smoothing coefficient
-            smth=0.01)
+            smth=0.01
+        )
         # build the transition LM: depending on MODE consider
         # either IG- or paradigm-based transition
-        tfn = (self.mode.count('I') and 'ligs.' or 'prms.')
-        tfn += str(self.cw) + 'gram'
+        tfn = self.mode.count("I") and "ligs." or "prms."
+        tfn += str(self.cw) + "gram"
         self.buildff_transi(os.path.join(mdl_dir, tfn))
         # create an emission LM instance
         self.new_emissi(
             # pass emission smoothing coefficient
-            smth=0.01)
+            smth=0.01
+        )
         # build the emission LM: depending on MODE consider
         # either wrd|prm or stm-prm|IG probabilities
-        efn = self.mode.count('P') and 'wrd_tag' or 'stm_lig'
+        efn = self.mode.count("P") and "wrd_tag" or "stm_lig"
         self.buildff_emissi(os.path.join(mdl_dir, efn))
         # populate the look-up dictionary
-        self.getff_lkp(os.path.join(mdl_dir, 'lkps'))
+        self.getff_lkp(os.path.join(mdl_dir, "lkps"))
 
     # LM ROUTINES: TRANSITION
     def new_transi(self, cw=None, smth=1, log=None):
@@ -128,16 +143,15 @@ class TaggerHMM():
             elif not cats:
                 continue
             vals = l.split(pdlm)
-            lyses = vals[cats['[lyses]']:]
+            lyses = vals[cats["[lyses]"] :]
             self.pc[vals[0]] = lyses
 
     def tag_sentence(self, s):
-
         def vbi(anls):
             # pre- and append "*" - empty ngram chars
             shft = self.cw - 1
             # empty entry
-            emp = {'anl': self.em, 'emprb': 0.0, 'trtag': self.em}
+            emp = {"anl": self.em, "emprb": 0.0, "trtag": self.em}
             ems = [[emp] for i in range(shft)]
             anls = ems + anls + ems
             # viterbi prob-paths list
@@ -147,20 +161,21 @@ class TaggerHMM():
                 vp.append([(0.0, (i + 1) * [self.em])])
             # calculate max prb path
             for i in range(shft, len(anls)):
-                cc = [[float('-inf'), ''] for e in range(len(anls[i]))]
+                cc = [[float("-inf"), ""] for e in range(len(anls[i]))]
                 for tup in itertools.product(
-                        *(range(len(anls[j])) for j in range(i - shft, i))):
+                    *(range(len(anls[j])) for j in range(i - shft, i))
+                ):
                     for ca, a in enumerate(anls[i]):
                         prb, pth, seq = 0.0, [], ()
                         for k, t in enumerate(tup):
-                            seq += (anls[i - shft + k][t]['trtag'],)
+                            seq += (anls[i - shft + k][t]["trtag"],)
                             if not pth:
                                 [prb, pth_copy] = vp[i - shft + k][t]
                                 pth = copy.copy(pth_copy)
                             else:
-                                pth.append(anls[i - shft + k][t]['anl'])
-                        seq += (a['trtag'],)
-                        pth.append(a['anl'])
+                                pth.append(anls[i - shft + k][t]["anl"])
+                        seq += (a["trtag"],)
+                        pth.append(a["anl"])
                         prb += self.transi.prb(seq)
                         if cc[ca][0] < prb:
                             cc[ca] = [prb, pth]
@@ -191,20 +206,19 @@ class TaggerHMM():
             # format for tagging and save
             tmp = []
             for a in wa:
-                fa = {'anl': a}
+                fa = {"anl": a}
                 wrd = utils.get_parse_sf(a, self.seg_dlm, self.mor_dlm)
-                tag = utils.get_parse_tg(
-                    a, self.seg_dlm, self.mor_dlm, self.mor_jnr)
+                tag = utils.get_parse_tg(a, self.seg_dlm, self.mor_dlm, self.mor_jnr)
                 trtag = tag
-                if self.mode.count('I'):
-                    trtag = utils.get_igps(
-                        a, self.seg_dlm, self.mor_dlm, self.mor_jnr)[0][-1]
-                    if self.mode == 'I':
-                        wrd = a[:a.rfind(
-                            trtag.split('-')[0])].rstrip(self.mor_dlm)
+                if self.mode.count("I"):
+                    trtag = utils.get_igps(a, self.seg_dlm, self.mor_dlm, self.mor_jnr)[
+                        0
+                    ][-1]
+                    if self.mode == "I":
+                        wrd = a[: a.rfind(trtag.split("-")[0])].rstrip(self.mor_dlm)
                         tag = trtag
-                fa['trtag'] = trtag
-                fa['emprb'] = self.emissi.prb((tag, wrd))
+                fa["trtag"] = trtag
+                fa["emprb"] = self.emissi.prb((tag, wrd))
                 tmp.append(fa)
             anls.append(tmp)
             # update own look-up
