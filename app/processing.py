@@ -23,22 +23,23 @@ def clean_data(dir, file):
 
     df = pd.read_csv(data)
 
-    df["combined_text"] = (
-        df.text.astype(str) + " " + df.plus.astype(str) + " " + df.minus.astype(str)
-    )
-    df.drop(["text", "plus", "minus"], inplace=True, axis=1)
+    text_columns = ["text", "plus", "minus"]
+    for column in text_columns:
+        df[column] = df[column].fillna("")
+        df[column] = df[column].apply(clean_text)
+        df[column] = df[column].apply(lemmatize_text)
 
-    df["combined_text"] = df["combined_text"].apply(clean_text)
-    df["combined_text"] = df["combined_text"].apply(lemmatize_text)
-
-    df.to_csv(f"{dir}/cleaned_data.csv")
+    df.to_csv(f"{dir}/reviews_cleaned.csv", index=False)
 
     LOGGER.info(f"Finished processing data in {perf_counter() - start_time}")
 
 
 def clean_text(text):
+    if not text:
+        return
+
     text = text.lower()
-    text = re.sub(r"(<\s*\w+\s*>)*(<\s*/\w+\s*>)*(nan)*", "", text)
+    text = re.sub(r"(<\s*\w+\s*>)*(<\s*/\w+\s*>)*", "", text)
     text = [
         word
         for word in text.split(" ")
@@ -49,10 +50,13 @@ def clean_text(text):
 
 
 def lemmatize_text(text):
-    text = stem.lemmatize(text)
-    text = [word for word in text if word != " "]
+    if not text:
+        return
 
-    return " ".join(text)
+    text = stem.lemmatize(text)
+    text = [word for word in text if word.isalpha()]
+
+    return " ".join(text).strip()
 
 
 def process_data():
