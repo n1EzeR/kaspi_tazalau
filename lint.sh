@@ -4,4 +4,4 @@ set -x
 
 autoflake --remove-all-unused-imports --recursive --remove-unused-variables --in-place code --exclude=__init__.py
 isort --multi-line=3 --trailing-comma --force-grid-wrap=0 --combine-as --line-width 88 --recursive --apply code
-black code
+black app --exclude "constants\.py"
