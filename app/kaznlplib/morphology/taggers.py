@@ -58,9 +58,9 @@ class TaggerHMM:
         self.ng_dlm = ng_dlm
         # empty marker for N-grams (default in parenthesis): (*) (*) wrd
         self.em = em
-        # pre-computed data delimeter (default in parenthesis): w(~@~)f1(~@~)f2
+        # pre-computed raw_data delimeter (default in parenthesis): w(~@~)f1(~@~)f2
         self.pc_dlm = pc_dlm
-        # pre-computed data header-mark (default in parenthesis): (# )h1~@~h2
+        # pre-computed raw_data header-mark (default in parenthesis): (# )h1~@~h2
         self.ph = ph
         # default encoding: utf-8
         self.de = de

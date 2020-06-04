@@ -144,7 +144,7 @@ class HMM_DI:
         self.states = {}
         # vocabulary of observations
         self.observations = {}
-        # read in the data and obtain counts
+        # read in the raw_data and obtain counts
         transition_counts = {}
         emission_counts = {}
         input_length = 0.0

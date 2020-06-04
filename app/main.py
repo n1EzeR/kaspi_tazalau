@@ -1,5 +1,6 @@
 import asyncio
-from code import parser, processing
+
+from app import parser, processing
 
 
 async def process_data():

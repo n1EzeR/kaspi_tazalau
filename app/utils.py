@@ -1,8 +1,9 @@
 import logging
 import os
-from code.exceptions import EmptyDirectoryException
-from code.kaznlplib.lid.lidnb import LidNB
-from code.kaznlplib.tokenization.tokrex import TokenizeRex
+
+from app.exceptions import EmptyDirectoryException
+from app.kaznlplib.lid.lidnb import LidNB
+from app.kaznlplib.tokenization.tokrex import TokenizeRex
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger()
