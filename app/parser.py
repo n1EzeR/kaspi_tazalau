@@ -1,21 +1,23 @@
 import asyncio
 import logging
 import os
-from datetime import date as dt, timedelta
+import re
+import unicodedata
+from datetime import date as dt
 from time import perf_counter
 
 import aiofiles
 import pandas as pd
 import ujson as json
 
-from code.utils import detect_language, get_latest_date_in_dir
+from app.utils import detect_language, get_latest_date_in_dir
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger()
 
 
 async def compile_data():
-    reviews_dir = "../data"
+    reviews_dir = "../raw_data"
     latest_parse_date = get_latest_date_in_dir(reviews_dir)
     reviews_dir = f"{reviews_dir}/{latest_parse_date}"
 
@@ -57,67 +59,65 @@ async def collect_category_reviews(reviews_dir, category):
     await asyncio.gather(*tasks)
 
     data = {
-        "text": texts,
         "plus": pluses,
         "minus": minuses,
+        "text": texts,
         "language": languages,
         "rating": ratings,
     }
-    date = str(dt.today() + timedelta(days=3))
-    os.makedirs(f"../cleaned_data/{date}/", exist_ok=True)
+    date = str(dt.today())
+    os.makedirs(f"../collected_data/{date}/", exist_ok=True)
 
     df = pd.DataFrame(data=data)
     df["category"] = category
-    df.to_csv(f"../cleaned_data/{date}/{category}.csv")
+    df.to_csv(f"../collected_data/{date}/{category}.csv", sep="|", index=False)
 
     LOGGER.info(f"Number of products in {category}: {len(products)}")
     LOGGER.info(f"Finished collection of {category} in {perf_counter() - start_time}")
 
 
 async def collect_product_reviews(
-        product, reviews_dir, texts, pluses, minuses, languages, ratings
+    product, reviews_dir, texts, pluses, minuses, languages, ratings, approves, rates
 ):
     reviews_path = f"{reviews_dir}/{product}"
     async with aiofiles.open(reviews_path) as f:
         reviews = json.loads(await f.read())["data"]
 
-    LOGGER.info(f"Started collecting product reviews")
-    reviews_start = perf_counter()
+    if not reviews:
+        return
 
-    reviews_tasks = []
     for review in reviews:
-        reviews_tasks.append(
-            append_review_data(review, texts, pluses, minuses, languages, ratings)
+        if not review["rating"]:
+            LOGGER.warning(f"NO RATING FOR {product}")
+            LOGGER.info(review)
+            continue
+
+        text, plus, minus = (
+            review["comment"]["text"],
+            review["comment"]["plus"],
+            review["comment"]["minus"],
         )
+        if not (plus or minus or text):
+            continue
 
-    LOGGER.info(f"Collected reviews in {perf_counter() - reviews_start}")
+        texts.append(text)
+        pluses.append(plus)
+        minuses.append(minus)
 
-    review_gather_start = perf_counter()
-    LOGGER.info(f"Started gathering product reviews")
-    await asyncio.gather(*reviews_tasks)
-    LOGGER.info(
-        f"Gathered product reviews in {perf_counter() - review_gather_start}"
-    )
+        language = detect_language(text or plus or minus)
+        languages.append(language)
 
+        ratings.append(review["rating"])
 
-async def append_review_data(review, texts, pluses, minuses, languages, ratings):
-    text, plus, minus = (
-        review["comment"]["text"],
-        review["comment"]["plus"],
-        review["comment"]["minus"],
-    )
-    texts.append(text)
-    pluses.append(plus)
-    minuses.append(minus)
+        review_rating = review["feedback"]["reviewsRating"]
 
-    language = detect_language(text or plus or minus)
-    languages.append(language)
-
-    ratings.append(review["rating"])
+        approved, rated = _parse_approved_rated(review_rating)
+        approves.append(approved)
+        rates.append(rated)
 
 
 def compile_dataframe():
-    data_dir = "../cleaned_data"
+    data_dir = "../collected_data"
     latest_categories_collection = get_latest_date_in_dir(data_dir)
 
     LOGGER.info(f"Dataframe compilation date: {latest_categories_collection}")
