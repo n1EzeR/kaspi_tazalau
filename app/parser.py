@@ -47,14 +47,25 @@ async def collect_category_reviews(reviews_dir, category):
     LOGGER.info(f"Started collection of {category}")
     start_time = perf_counter()
 
-    texts, pluses, minuses, ratings, languages = [], [], [], [], []
+    texts, pluses, minuses, ratings, languages, = [], [], [], [], []
+    approves, rates = [], []
 
     tasks = []
     products = os.listdir(reviews_dir)
     for product in products:
-        tasks.append(collect_product_reviews(
-            product, reviews_dir, texts, pluses, minuses, languages, ratings
-        ))
+        tasks.append(
+            collect_product_reviews(
+                product,
+                reviews_dir,
+                texts,
+                pluses,
+                minuses,
+                languages,
+                ratings,
+                approves,
+                rates,
+            )
+        )
 
     await asyncio.gather(*tasks)
 
@@ -64,6 +75,8 @@ async def collect_category_reviews(reviews_dir, category):
         "text": texts,
         "language": languages,
         "rating": ratings,
+        "approves": approves,
+        "rates": rates,
     }
     date = str(dt.today())
     os.makedirs(f"../collected_data/{date}/", exist_ok=True)
@@ -129,11 +142,31 @@ def compile_dataframe():
     for category in categories:
         df = pd.read_csv(
             f"{categories_dir}/{category}",
-            usecols=["text", "plus", "minus", "language", "rating", "category"],
+            usecols=[
+                "category",
+                "plus",
+                "minus",
+                "text",
+                "language",
+                "rating",
+                "approves",
+                "rates",
+            ],
+            sep="|",
         )
         reviews = reviews.append(df, ignore_index=True)
 
-    reviews.to_csv(f"{categories_dir}/all.csv")
+    reviews.to_csv(f"{categories_dir}/all.csv", index=False, sep="|")
+
+
+def _parse_approved_rated(review_rating):
+    if not review_rating:
+        return 0, 0
+
+    review_rating = unicodedata.normalize("NFKD", review_rating)
+    match = re.search(r"(\d+\s*\d*)\s+из\s+(\d+\s*\d*)", review_rating)
+    approved, rated = map(lambda x: int(x.replace(" ", "")), match.groups())
+    return approved, rated
 
 
 if __name__ == "__main__":
