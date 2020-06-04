@@ -1,10 +1,10 @@
 # About
-The project cleans data collected from https://github.com/zhanymkanov/reviews_parser
+The project cleans data collected from https://github.com/zhanymkanov/marketplace_parser
 
 ## Parsed data can be downloaded here:
-https://github.com/zhanymkanov/russian_reviews_dataset
+https://github.com/zhanymkanov/reviews_dataset
 - Partially cleaned (both row and cleaned versioans are available though)
-- ~120k rows
+- ~190k rows
 
 # Processing steps
 ### Part I
@@ -21,10 +21,9 @@ https://github.com/zhanymkanov/russian_reviews_dataset
 
 ## Prerequisites
 1. Python 3
-2. pip
-3. Pipenv (`pip3 install -m pipenv`)
-4. Sucessfully parsed data from https://github.com/zhanymkanov/reviews_parser
-5. Make sure data is collected from parser and stored in proper directories locally
+2. Docker, docker-compose
+3. Sucessfully parsed data from https://github.com/zhanymkanov/marketplace_parser
+4. Make sure data is collected from parser and stored in proper directories locally
 
 ## Installation
 1. Clone the project
@@ -35,16 +34,10 @@ git clone https://github.com/zhanymkanov/reviews_tazalau
 ```
 cd reviews_tazalau
 ```
-3. Install the packages and virtual environment
+3. Set up the docker container
 ```
-pipenv install
+docker-compose build
 ```
 
 ## Usage
-```
-cd code
-python app.py
-```
-
-## Further development
-1. Make data paths more universal
+Run the `main.py`
